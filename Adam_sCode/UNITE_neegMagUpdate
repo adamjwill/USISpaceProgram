@@ -1,0 +1,249 @@
+
+#include <EEPROM.h>
+
+/* Code for UNITE CubeSat prototype to be flown on HAB on Oct. 22, 2016
+    Prototype will include:
+      four AD590 temperature probes routed through a multiplexer
+      solar cells with output voltage that will be read by Arduino
+      faked data for plasma probe and magnetometer
+      data stored in EEPROM to be retrieved after flight
+    Printed information is only for testing of prototype and was displayed on serial monitor
+    Revisions:
+    1_1: Added resistor values for op-amp circuit so temp could be calculated
+*/
+
+int addr = 0;       //address for EEPROM
+byte packet= 0;     //counter for addressing of sent packages
+byte temp_raw;      //adc value for temp sensors
+float temp_V [4];   //voltage variables for temp sensors
+float temp[4];         //variable for final temperature
+int tmuxEN=3;       //enable MUX
+int tmuxA=4;        //temp MUX control variables
+int tmuxB=7;        //temp MUX control variables
+int tmuxC=8;        //temp MUX control variables
+byte solar1_raw;     //adc value for solar cells
+float solar1;        //voltage variable for solar cells
+byte solar2_raw;     //adc value for solar cells
+float solar2;        //voltage variable for solar cells
+byte solar3_raw;     //adc value for solar cells
+float solar3;        //voltage variable for solar cells
+byte magx;     //variables for simulating magnetometer data
+byte magy;
+byte magz;
+byte battery_raw;   //adc value for battery
+float battery;      //variable for storing battery
+int dly = 500;     //variable for setting delay time
+int R1 = 990;
+int R2 = 993;
+int R3 = 10060;
+
+void setup() {
+  Serial.begin(9600);
+  pinMode(tmuxEN,OUTPUT);
+  pinMode(tmuxA,OUTPUT);
+  pinMode(tmuxB,OUTPUT);
+  pinMode(tmuxC,OUTPUT);
+}
+
+void loop() {
+  digitalWrite(tmuxEN,LOW);
+  // put your main code here, to run repeatedly:
+  if (packet <2) Serial.print(B0);
+  if (packet <4) Serial.print(B0);
+  if (packet <8) Serial.print(B0);
+  if (packet <16) Serial.print(B0);
+  if (packet <32) Serial.print(B0);
+  if (packet <64) Serial.print(B0);
+  if (packet <128) Serial.print(B0);
+  if (packet <256) Serial.print(B0);
+  Serial.print(packet,BIN); //displays byte in binary followed by byte description
+  Serial.print("\t");
+  Serial.print("Packet:");
+  Serial.print("\t");
+  Serial.println(packet);
+  int j=0;
+  while (j<3) {
+    if (j==0) {
+      digitalWrite(tmuxA,LOW);
+      digitalWrite(tmuxB,LOW);
+      digitalWrite(tmuxC,LOW);
+    }
+    else if (j==1) {
+      digitalWrite(tmuxA,HIGH);
+      digitalWrite(tmuxB,LOW);
+      digitalWrite(tmuxC,LOW);
+    }
+    else if (j==2) {
+      digitalWrite(tmuxA,LOW);
+      digitalWrite(tmuxB,HIGH);
+      digitalWrite(tmuxC,LOW);
+    }
+    temp_raw = analogRead(0)/4; // reads ADC value and converts to a single byte
+    temp_V[j] = temp_raw*(5.0/255.0); // converts raw ADC value to voltage
+    temp[j]=((temp_V[j]*R2/(R2+R3))/R1)*1000000;
+    if (temp_raw/4 <2) Serial.print(B0);
+    if (temp_raw/4 <4) Serial.print(B0);
+    if (temp_raw/4 <8) Serial.print(B0);
+    if (temp_raw/4 <16) Serial.print(B0);
+    if (temp_raw/4 <32) Serial.print(B0);
+    if (temp_raw/4 <64) Serial.print(B0);
+    if (temp_raw/4 <128) Serial.print(B0);
+    if (temp_raw/4 <256) Serial.print(B0);
+    Serial.print(temp_raw/4, BIN); // displays byte in binary followed by byte description
+    Serial.print("\t");
+    Serial.print("Temp_V");
+    Serial.print(j);
+    Serial.print(":");
+    Serial.print("\t");
+    Serial.print(temp_V[j]);
+    Serial.print("\t");
+    Serial.print(temp[j]);
+    Serial.print("K");
+    Serial.print("\t");
+    Serial.print(temp[j]-273.15);
+    Serial.print("C");
+    Serial.print("\t");
+    Serial.print((temp[j]-273.15)*1.8+32.0);
+    Serial.print("F");
+    Serial.println("\t");
+    EEPROM.write(addr, temp_V[j]);
+    addr++;
+    delay(dly);
+    j=j+1;
+  }
+  solar1_raw = analogRead(1)/4;  //reads ADC value and converts to a single byte
+  solar1 = solar1_raw*(5.0/255.0); // converts raw ADC value to voltage
+  if (solar1_raw/4 <2) Serial.print(B0);
+  if (solar1_raw/4 <4) Serial.print(B0);
+  if (solar1_raw/4 <8) Serial.print(B0);
+  if (solar1_raw/4 <16) Serial.print(B0);
+  if (solar1_raw/4 <32) Serial.print(B0);
+  if (solar1_raw/4 <64) Serial.print(B0);
+  if (solar1_raw/4 <128) Serial.print(B0);
+  if (solar1_raw/4 <256) Serial.print(B0);
+  Serial.print(solar1_raw/4, BIN); // displays byte in binary followed by byte description
+  Serial.print("\t");
+  Serial.print("Solar1:");
+  Serial.print("\t");
+  Serial.println(solar1);
+  EEPROM.write(addr, solar1);
+  addr++;
+  delay(dly);
+  
+  solar2_raw = analogRead(2)/4;  //reads ADC value and converts to a single byte
+  solar2 = solar2_raw*(5.0/255.0); // converts raw ADC value to voltage
+  if (solar2_raw/4 <2) Serial.print(B0);
+  if (solar2_raw/4 <4) Serial.print(B0);
+  if (solar2_raw/4 <8) Serial.print(B0);
+  if (solar2_raw/4 <16) Serial.print(B0);
+  if (solar2_raw/4 <32) Serial.print(B0);
+  if (solar2_raw/4 <64) Serial.print(B0);
+  if (solar2_raw/4 <128) Serial.print(B0);
+  if (solar2_raw/4 <256) Serial.print(B0);
+  Serial.print(solar2_raw/4, BIN); // displays byte in binary followed by byte description
+  Serial.print("\t");
+  Serial.print("Solar2:");
+  Serial.print("\t");
+  Serial.println(solar2);
+  EEPROM.write(addr, solar2);
+  addr++;
+  delay(dly);
+  
+  solar3_raw = analogRead(8)/4;  //reads ADC value and converts to a single byte
+  solar3 = solar3_raw*(5.0/255.0); // converts raw ADC value to voltage
+  if (solar3_raw/4 <2) Serial.print(B0);
+  if (solar3_raw/4 <4) Serial.print(B0);
+  if (solar3_raw/4 <8) Serial.print(B0);
+  if (solar3_raw/4 <16) Serial.print(B0);
+  if (solar3_raw/4 <32) Serial.print(B0);
+  if (solar3_raw/4 <64) Serial.print(B0);
+  if (solar3_raw/4 <128) Serial.print(B0);
+  if (solar3_raw/4 <256) Serial.print(B0);
+  Serial.print(solar3_raw/4, BIN); // displays byte in binary followed by byte description
+  Serial.print("\t");
+  Serial.print("Solar3:");
+  Serial.print("\t");
+  Serial.println(solar3);
+  EEPROM.write(addr, solar3);
+  addr++;
+  delay(dly);
+  
+  magx = random(255);
+  if (magx <2) Serial.print(B0);
+  if (magx <4) Serial.print(B0);
+  if (magx <8) Serial.print(B0);
+  if (magx <16) Serial.print(B0);
+  if (magx <32) Serial.print(B0);
+  if (magx <64) Serial.print(B0);
+  if (magx <128) Serial.print(B0);
+  if (magx <256) Serial.print(B0);
+  Serial.print(magx, BIN); // displays byte in binary followed by byte description
+  Serial.print("\t");
+  Serial.print("Mag_X:");
+  Serial.print("\t");
+  Serial.println(magx);    
+  EEPROM.write(addr, magx);
+  addr++;  
+  delay(dly);
+
+  magy = random(255);
+  if (magy <2) Serial.print(B0);
+  if (magy <4) Serial.print(B0);
+  if (magy <8) Serial.print(B0);
+  if (magy <16) Serial.print(B0);
+  if (magy <32) Serial.print(B0);
+  if (magy <64) Serial.print(B0);
+  if (magy <128) Serial.print(B0);
+  if (magy <256) Serial.print(B0);  
+  Serial.print(magy, BIN); // displays byte in binary followed by byte description
+  Serial.print("\t");
+  Serial.print("Mag_Y:");
+  Serial.print("\t");
+  Serial.println(magy);    
+  EEPROM.write(addr, magy);
+  addr++;  
+  delay(dly);
+
+  magz = random(255);
+  if (magz <2) Serial.print(B0);
+  if (magz <4) Serial.print(B0);
+  if (magz <8) Serial.print(B0);
+  if (magz <16) Serial.print(B0);
+  if (magz <32) Serial.print(B0);
+  if (magz <64) Serial.print(B0);
+  if (magz <128) Serial.print(B0);
+  if (magz <256) Serial.print(B0);
+  Serial.print(magz, BIN); // displays byte in binary followed by byte description
+  Serial.print("\t");
+  Serial.print("Mag_Z:");
+  Serial.print("\t");
+  Serial.println(magz);    
+  EEPROM.write(addr, magz);
+  addr++;  
+  delay(dly);   
+  
+  battery_raw = analogRead(2)/4;  //reads ADC value and converts to a single byte
+  battery = battery_raw*(5.0/255.0); // converts raw ADC value to voltage
+  if (battery_raw/4 <2) Serial.print(B0);
+  if (battery_raw/4 <4) Serial.print(B0);
+  if (battery_raw/4 <8) Serial.print(B0);
+  if (battery_raw/4 <16) Serial.print(B0);
+  if (battery_raw/4 <32) Serial.print(B0);
+  if (battery_raw/4 <64) Serial.print(B0);
+  if (battery_raw/4 <128) Serial.print(B0);
+  if (battery_raw/4 <256) Serial.print(B0);
+  Serial.print(battery_raw/4, BIN); // displays byte in binary followed by byte description
+  Serial.print("\t");
+  Serial.print("Battery:");
+  Serial.print("\t");
+  Serial.println(battery);
+  EEPROM.write(addr, battery);
+  addr++;
+  delay(dly);
+
+  packet++;
+  if (packet==256) {
+    packet = 0;
+  }
+  Serial.println("");
+}
